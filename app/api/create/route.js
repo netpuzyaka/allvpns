@@ -23,7 +23,15 @@ export async function POST(request) {
     id = generateId();
   }
 
-  await saveVpn(id, { content, label, createdAt: Date.now() });
+  try {
+    await saveVpn(id, { content, label, createdAt: Date.now() });
+  } catch (err) {
+    console.error('saveVpn failed:', err);
+    return NextResponse.json(
+      { error: 'Не удалось сохранить в хранилище. Проверьте, что Blob Store подключён к проекту.' },
+      { status: 500 },
+    );
+  }
 
   const origin = request.headers.get('origin') || new URL(request.url).origin;
 

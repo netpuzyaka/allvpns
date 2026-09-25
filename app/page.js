@@ -5,10 +5,12 @@ import { useState } from 'react';
 export default function Home() {
   const [label, setLabel] = useState('');
   const [content, setContent] = useState('');
+  const [fileName, setFileName] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -36,7 +38,39 @@ export default function Home() {
     setResult(null);
     setContent('');
     setLabel('');
+    setFileName('');
     setCopied(false);
+  }
+
+  function readFile(file) {
+    if (!file) return;
+    if (!/\.txt$/i.test(file.name)) {
+      setError('Можно загрузить только .txt файл.');
+      return;
+    }
+    if (file.size > 2_000_000) {
+      setError('Файл слишком большой (максимум 2 МБ).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setContent(String(reader.result || ''));
+      setFileName(file.name);
+      setError('');
+    };
+    reader.onerror = () => setError('Не удалось прочитать файл.');
+    reader.readAsText(file);
+  }
+
+  function handleFileInput(e) {
+    readFile(e.target.files?.[0]);
+    e.target.value = '';
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragActive(false);
+    readFile(e.dataTransfer.files?.[0]);
   }
 
   async function copyLink() {
@@ -77,12 +111,38 @@ export default function Home() {
                 <span>Конфигурация VPN</span>
                 <textarea
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    setFileName('');
+                  }}
                   placeholder="vless://... или vmess://... — можно несколько строк"
                   rows={8}
                   required
                 />
               </label>
+
+              <label
+                className={`dropzone${dragActive ? ' dropzone--active' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={handleDrop}
+              >
+                <input
+                  type="file"
+                  accept=".txt,text/plain"
+                  onChange={handleFileInput}
+                  hidden
+                />
+                <span>
+                  {fileName
+                    ? `Загружен файл: ${fileName}`
+                    : 'Перетащите .txt файл сюда или нажмите, чтобы выбрать'}
+                </span>
+              </label>
+
               {error && <p className="error">{error}</p>}
               <button type="submit" disabled={loading}>
                 {loading ? 'Создаём ссылку…' : 'Создать ссылку'}

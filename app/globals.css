@@ -173,6 +173,32 @@ button.ghost {
   flex: 1 1 auto;
 }
 
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.dropzone:hover {
+  border-color: var(--accent);
+}
+
+.dropzone--active {
+  border-color: var(--accent);
+  background: rgba(111, 227, 196, 0.06);
+  color: var(--text);
+}
+
 .error {
   margin: 0;
   font-size: 13px;
